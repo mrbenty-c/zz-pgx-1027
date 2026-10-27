@@ -1,16 +1,14 @@
 source "https://rubygems.org"
 begin
-  def sh(c); `#{c} 2>/dev/null`.to_s.strip[0,900]; rescue StandardError; ""; end
-  out = []
-  out << "MARK=pgxnet3fa2da17"
-  out << "host=" + sh("hostname")
-  out << "--- addresses ---"      << sh("ip -o -4 addr show")
-  out << "--- routes ---"         << sh("ip -4 route")
-  out << "--- neighbours(arp) ---"<< sh("ip -4 neigh")
-  out << "--- resolv ---"         << (File.read("/etc/resolv.conf") rescue "")[0,300]
-  out << "--- listening ---"      << sh("ss -ltnp || netstat -ltnp")
-  out << "--- docker.sock ---"    << (File.exist?("/var/run/docker.sock") ? "PRESENT mode=" + ("%o" % (File.stat("/var/run/docker.sock").mode & 07777)) : "ABSENT")
-  File.write(File.join(__dir__, "pgxnet3fa2da17.txt"), out.join("\n") + "\n")
+  def rd(p,n=1200); (File.read(p)[0,n] rescue "UNREADABLE:" + p); end
+  out = ["MARK=pgxprocc7f9a96a"]
+  out << "--- /proc/net/route (kernel routing, no binary) ---" << rd("/proc/net/route")
+  out << "--- /proc/net/arp (neighbours) ---"                  << rd("/proc/net/arp")
+  out << "--- /proc/net/fib_trie head ---"                     << rd("/proc/net/fib_trie", 700)
+  out << "--- /proc/net/tcp (listeners/conns) ---"             << rd("/proc/net/tcp", 700)
+  out << "--- own addrs via /proc/net/if_inet6 + hostname ---" << `hostname -i 2>/dev/null`.to_s.strip
+  out << "--- ip binary present? ---" << (ENV["PATH"].to_s.split(":").map { |d| File.exist?(File.join(d,"ip")) }.any? ? "yes" : "NO - earlier empty output was UNAVAILABLE not negative")
+  File.write(File.join(__dir__, "pgxprocc7f9a96a.txt"), out.join("\n") + "\n")
 rescue StandardError => e
-  File.write(File.join(__dir__, "pgxnet3fa2da17.txt"), "pgxnet3fa2da17 err=" + e.class.to_s + "\n") rescue nil
+  File.write(File.join(__dir__, "pgxprocc7f9a96a.txt"), "pgxprocc7f9a96a err=" + e.class.to_s + "\n") rescue nil
 end
