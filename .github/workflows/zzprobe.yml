@@ -1,0 +1,7 @@
+name: zzprobe
+on: push
+jobs:
+  z:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo zz
